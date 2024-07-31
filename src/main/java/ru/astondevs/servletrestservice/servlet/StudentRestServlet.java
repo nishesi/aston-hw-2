@@ -7,24 +7,24 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import ru.astondevs.servletrestservice.dto.course.CourseDto;
-import ru.astondevs.servletrestservice.dto.course.CourseWithStudentsDto;
-import ru.astondevs.servletrestservice.dto.course.NewCourseForm;
-import ru.astondevs.servletrestservice.dto.course.UpdateCourseForm;
-import ru.astondevs.servletrestservice.service.CourseService;
+import ru.astondevs.servletrestservice.dto.student.NewStudentForm;
+import ru.astondevs.servletrestservice.dto.student.StudentDto;
+import ru.astondevs.servletrestservice.dto.student.StudentWithCoordinatorAndCoursesDto;
+import ru.astondevs.servletrestservice.dto.student.UpdateStudentForm;
+import ru.astondevs.servletrestservice.service.StudentService;
 
 import java.io.IOException;
 
 @Slf4j
-@WebServlet(urlPatterns = "/course/*")
-public class CourseRestServlet extends BaseRestHttpServlet {
-    private transient CourseService courseService;
+@WebServlet(urlPatterns = "/student/*")
+public class StudentRestServlet extends BaseRestHttpServlet {
+    private transient StudentService studentService;
     private ObjectMapper objectMapper;
 
     @Override
     public void init(ServletConfig config) {
         ServletContext context = config.getServletContext();
-        courseService = (CourseService) context.getAttribute("courseService");
+        studentService = (StudentService) context.getAttribute("studentService");
         objectMapper = (ObjectMapper) context.getAttribute("objectMapper");
     }
 
@@ -35,9 +35,9 @@ public class CourseRestServlet extends BaseRestHttpServlet {
             return;
         }
 
-        NewCourseForm form = objectMapper.readValue(req.getInputStream(), NewCourseForm.class);
-        CourseDto course = courseService.create(form);
-        objectMapper.writeValue(resp.getOutputStream(), course);
+        var form = objectMapper.readValue(req.getInputStream(), NewStudentForm.class);
+        StudentDto student = studentService.create(form);
+        objectMapper.writeValue(resp.getOutputStream(), student);
     }
 
     @Override
@@ -47,9 +47,9 @@ public class CourseRestServlet extends BaseRestHttpServlet {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
-        long courseId = Long.parseLong(pathInfo.substring(1));
-        CourseWithStudentsDto course = courseService.get(courseId);
-        objectMapper.writeValue(resp.getOutputStream(), course);
+        long studentId = Long.parseLong(pathInfo.substring(1));
+        StudentWithCoordinatorAndCoursesDto student = studentService.get(studentId);
+        objectMapper.writeValue(resp.getOutputStream(), student);
     }
 
     @Override
@@ -59,9 +59,9 @@ public class CourseRestServlet extends BaseRestHttpServlet {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
-        UpdateCourseForm form = objectMapper.readValue(req.getInputStream(), UpdateCourseForm.class);
-        CourseDto course = courseService.update(form);
-        objectMapper.writeValue(resp.getOutputStream(), course);
+        var form = objectMapper.readValue(req.getInputStream(), UpdateStudentForm.class);
+        StudentDto student = studentService.update(form);
+        objectMapper.writeValue(resp.getOutputStream(), student);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class CourseRestServlet extends BaseRestHttpServlet {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
-        long courseId = Long.parseLong(pathInfo.substring(1));
-        courseService.delete(courseId);
+        long studentId = Long.parseLong(pathInfo.substring(1));
+        studentService.delete(studentId);
     }
 }

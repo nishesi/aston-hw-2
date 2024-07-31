@@ -49,26 +49,26 @@ class CourseServiceImplTest {
             Course course1 = new Course();
             CourseDto courseDto = new CourseDto(null, null, null);
             when(courseMapper.toCourse(form)).thenReturn(course);
-            when(courseRepository.insertCourse(course)).thenReturn(course1);
+            when(courseRepository.insert(course)).thenReturn(course1);
             when(courseMapper.toCourseDto(course1)).thenReturn(courseDto);
 
-            CourseDto result = courseService.createCourse(form);
+            CourseDto result = courseService.create(form);
 
             assertThat(result, sameInstance(courseDto));
 
             verify(courseMapper).toCourse(form);
-            verify(courseRepository).insertCourse(course);
+            verify(courseRepository).insert(course);
             verify(courseMapper).toCourseDto(course1);
         }
 
         @Test
         void should_throw_service_exception_when_data_consistency_exception() {
-            when(courseRepository.insertCourse(any()))
+            when(courseRepository.insert(any()))
                     .thenThrow(new DataConsistencyException("test exception", new RuntimeException()));
 
             NewCourseForm form = new NewCourseForm(null, null);
 
-            Assertions.assertThrows(ServiceException.class, () -> courseService.createCourse(form));
+            Assertions.assertThrows(ServiceException.class, () -> courseService.create(form));
         }
     }
 
@@ -82,7 +82,7 @@ class CourseServiceImplTest {
             when(courseRepository.findCourseWithStudentsById(anyLong())).thenReturn(Optional.of(courseWithStudents));
             when(courseMapper.toCourseWithStudentsDto(courseWithStudents)).thenReturn(courseWithStudentsDto);
 
-            CourseWithStudentsDto result = courseService.getCourse(1L);
+            CourseWithStudentsDto result = courseService.get(1L);
 
             assertThat(result, sameInstance(courseWithStudentsDto));
 
@@ -94,7 +94,7 @@ class CourseServiceImplTest {
         void should_throw_service_exception_if_course_not_found() {
             when(courseRepository.findCourseWithStudentsById(anyLong())).thenReturn(Optional.empty());
 
-            Assertions.assertThrows(ServiceException.class, () -> courseService.getCourse(1L));
+            Assertions.assertThrows(ServiceException.class, () -> courseService.get(1L));
 
             verify(courseRepository).findCourseWithStudentsById(1L);
         }
@@ -109,26 +109,26 @@ class CourseServiceImplTest {
             Course course1 = new Course();
             CourseDto courseDto = new CourseDto(null, null, null);
             when(courseMapper.toCourse(form)).thenReturn(course);
-            when(courseRepository.updateCourse(course)).thenReturn(course1);
+            when(courseRepository.update(course)).thenReturn(course1);
             when(courseMapper.toCourseDto(course1)).thenReturn(courseDto);
 
-            CourseDto result = courseService.updateCourse(form);
+            CourseDto result = courseService.update(form);
 
             assertThat(result, sameInstance(courseDto));
 
             verify(courseMapper).toCourse(form);
-            verify(courseRepository).updateCourse(course);
+            verify(courseRepository).update(course);
             verify(courseMapper).toCourseDto(course1);
         }
 
         @Test
         void should_throw_service_exception_when_data_consistency_exception() {
-            when(courseRepository.updateCourse(any()))
+            when(courseRepository.update(any()))
                     .thenThrow(new DataConsistencyException("test exception", new RuntimeException()));
 
             UpdateCourseForm form = new UpdateCourseForm(null, null, null);
 
-            Assertions.assertThrows(ServiceException.class, () -> courseService.updateCourse(form));
+            Assertions.assertThrows(ServiceException.class, () -> courseService.update(form));
         }
     }
 
@@ -136,8 +136,8 @@ class CourseServiceImplTest {
     class deleteCourse_method_test {
         @Test
         void should_delete_course() {
-            courseService.deleteCourse(1L);
-            verify(courseRepository).deleteCourseById(1L);
+            courseService.delete(1L);
+            verify(courseRepository).deleteById(1L);
         }
     }
 }

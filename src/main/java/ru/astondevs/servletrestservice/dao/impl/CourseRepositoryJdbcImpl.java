@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import ru.astondevs.servletrestservice.dao.CourseRepository;
 import ru.astondevs.servletrestservice.exception.DaoException;
 import ru.astondevs.servletrestservice.exception.DataConsistencyException;
-import ru.astondevs.servletrestservice.model.Student;
+import ru.astondevs.servletrestservice.model.student.Student;
 import ru.astondevs.servletrestservice.model.course.Course;
 import ru.astondevs.servletrestservice.model.course.CourseWithStudents;
 import ru.astondevs.servletrestservice.util.TransactionCloseable;
@@ -19,15 +19,13 @@ import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
-public class CourseRepositoryImpl implements CourseRepository {
+public class CourseRepositoryJdbcImpl implements CourseRepository {
     private final DataSource dataSource;
 
     @Override
-    public Course insertCourse(Course course) {
+    public Course insert(Course course) {
         try (var connection = dataSource.getConnection();
              var ignored = new TransactionCloseable(connection)) {
-
-            connection.setAutoCommit(false);
 
             String insertCourseSql = "insert into course (name) values (?) returning course_id";
             try (var ps = connection.prepareStatement(insertCourseSql)) {
@@ -83,11 +81,8 @@ public class CourseRepositoryImpl implements CourseRepository {
             // select students data
             String sql = """
                     select s.student_id, s.name, s.coordinator_id
-                    from student s
-                        inner join (select student_id, course_id
-                                    from student_courses
-                                    where course_id = ?) as sc
-                        using (student_id)
+                    from student s inner join student_courses using (student_id)
+                    where course_id = ?
                     """;
             try (var ps = connection.prepareStatement(sql)) {
                 ps.setLong(1, courseId);
@@ -113,16 +108,21 @@ public class CourseRepositoryImpl implements CourseRepository {
     }
 
     @Override
-    public Course updateCourse(Course course) {
+    public Course update(Course course) {
         Set<Long> updateStudentIds = course.getStudentIds();
         try (var connection = dataSource.getConnection();
              var ignored = new TransactionCloseable(connection)) {
 
-            connection.setAutoCommit(false);
+            String sql = "update course set name = ? where course_id = ?";
+            try (var ps = connection.prepareStatement(sql)) {
+                ps.setString(1, course.getName());
+                ps.setLong(2, course.getId());
+                ps.executeUpdate();
+            }
 
             Set<Long> existingStudentIds = new HashSet<>();
-            String sql = "select student_id from student_courses where course_id = ?";
-            try (var ps = connection.prepareStatement(sql)) {
+            String sql1 = "select student_id from student_courses where course_id = ?";
+            try (var ps = connection.prepareStatement(sql1)) {
                 ps.setLong(1, course.getId());
                 ResultSet resultSet = ps.executeQuery();
                 while (resultSet.next()) {
@@ -153,6 +153,7 @@ public class CourseRepositoryImpl implements CourseRepository {
             }
 
             connection.commit();
+            connection.setAutoCommit(true);
             return course;
 
         } catch (SQLException e) {
@@ -164,7 +165,7 @@ public class CourseRepositoryImpl implements CourseRepository {
     }
 
     @Override
-    public void deleteCourseById(long courseId) {
+    public void deleteById(long courseId) {
         try (var connection = dataSource.getConnection();
              var ps = connection.prepareStatement("delete from course where course_id = ?")) {
 

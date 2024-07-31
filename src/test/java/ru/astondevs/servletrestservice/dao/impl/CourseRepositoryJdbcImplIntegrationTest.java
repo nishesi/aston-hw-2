@@ -1,9 +1,5 @@
 package ru.astondevs.servletrestservice.dao.impl;
 
-import com.github.dockerjava.api.model.ExposedPort;
-import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.PortBinding;
-import com.github.dockerjava.api.model.Ports;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.*;
@@ -26,7 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @Testcontainers
-public class CourseRepositoryImplIntegrationTest {
+public class CourseRepositoryJdbcImplIntegrationTest {
 
     static HikariDataSource testDataSource;
 
@@ -34,7 +30,7 @@ public class CourseRepositoryImplIntegrationTest {
 
     static HikariDataSource spyDataSource;
 
-    static CourseRepositoryImpl courseRepository;
+    static CourseRepositoryJdbcImpl courseRepository;
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16.2-alpine")
@@ -42,9 +38,10 @@ public class CourseRepositoryImplIntegrationTest {
             .withUsername("postgres")
             .withPassword("postgres")
             .withInitScript("./init.sql")
-            .withCreateContainerCmdModifier(cmd -> cmd.withHostConfig(
-                    new HostConfig().withPortBindings(new PortBinding(Ports.Binding.bindPort(5433), new ExposedPort(5432)))
-            ));
+//            .withCreateContainerCmdModifier(cmd -> cmd.withHostConfig(
+//                    new HostConfig().withPortBindings(new PortBinding(Ports.Binding.bindPort(5433), new ExposedPort(5432)))
+//            ))
+            ;
 
     @BeforeAll
     static void setUp() {
@@ -57,12 +54,13 @@ public class CourseRepositoryImplIntegrationTest {
 
         contextDataSource = new HikariDataSource(hikariConfig);
         spyDataSource = Mockito.spy(contextDataSource);
-        courseRepository = new CourseRepositoryImpl(spyDataSource);
+        courseRepository = new CourseRepositoryJdbcImpl(spyDataSource);
     }
 
     @AfterAll
     static void tearDown() {
         testDataSource.close();
+        contextDataSource.close();
     }
 
     @Nested
@@ -105,7 +103,7 @@ public class CourseRepositoryImplIntegrationTest {
                     .studentIds(Set.of())
                     .build();
 
-            Course result = courseRepository.insertCourse(course);
+            Course result = courseRepository.insert(course);
 
             try (var connection = testDataSource.getConnection();
                  var ps = connection.prepareStatement("select * from course where course_id = ?")) {
@@ -124,7 +122,7 @@ public class CourseRepositoryImplIntegrationTest {
                     .studentIds(Set.of(1L))
                     .build();
 
-            Course result = courseRepository.insertCourse(course);
+            Course result = courseRepository.insert(course);
 
             try (var connection = testDataSource.getConnection();
                  var ps = connection.prepareStatement("select * from student_courses where course_id = ?")) {
@@ -133,6 +131,7 @@ public class CourseRepositoryImplIntegrationTest {
 
                 assertThat(resultSet.next(), is(true));
                 assertThat(resultSet.getLong("student_id"), is(1L));
+                assertThat(resultSet.next(), is(false));
             }
         }
 
@@ -143,7 +142,7 @@ public class CourseRepositoryImplIntegrationTest {
                     .studentIds(Set.of(1L, 100L))
                     .build();
 
-            Assertions.assertThrows(DataConsistencyException.class, () -> courseRepository.insertCourse(course));
+            Assertions.assertThrows(DataConsistencyException.class, () -> courseRepository.insert(course));
 
             try (var connection = testDataSource.getConnection();
                  var statement = connection.createStatement()) {
@@ -168,7 +167,7 @@ public class CourseRepositoryImplIntegrationTest {
                     .studentIds(Set.of())
                     .build();
 
-            Assertions.assertThrows(DaoException.class, () -> courseRepository.insertCourse(course));
+            Assertions.assertThrows(DaoException.class, () -> courseRepository.insert(course));
 
             Mockito.reset(spyDataSource);
         }
@@ -253,8 +252,8 @@ public class CourseRepositoryImplIntegrationTest {
     @Nested
     class updateCourse_method_test {
 
-        @BeforeAll
-        static void setUp() throws SQLException {
+        @BeforeEach
+        void setUp() throws SQLException {
             try (var connection = testDataSource.getConnection();
                  var ps = connection.prepareStatement("insert into student (name) values (?)")) {
                 List<String> names = List.of("Student 1", "Student 2", "Student 3");
@@ -273,8 +272,8 @@ public class CourseRepositoryImplIntegrationTest {
             }
         }
 
-        @AfterAll
-        static void clear_tables() throws SQLException {
+        @AfterEach
+        void clear_tables() throws SQLException {
             try (var connection = testDataSource.getConnection();
                  var st = connection.createStatement()) {
                 st.execute("truncate table student_courses, course, student restart identity");
@@ -287,11 +286,11 @@ public class CourseRepositoryImplIntegrationTest {
 
                 Course course = Course.builder()
                         .id(1L)
-                        .name("course 1")
+                        .name("Course 1")
                         .studentIds(Set.of(1L, 3L))
                         .build();
 
-                courseRepository.updateCourse(course);
+                courseRepository.update(course);
 
                 try (var s = connection.createStatement()) {
                     ResultSet resultSet = s.executeQuery("select * from student_courses where course_id = 1");
@@ -305,7 +304,7 @@ public class CourseRepositoryImplIntegrationTest {
 
                     resultSet = s.executeQuery("select * from course where course_id = 1");
                     assertThat(resultSet.next(), is(true));
-                    assertThat(resultSet.getString("name"), is("Course name"));
+                    assertThat(resultSet.getString("name"), is("Course 1"));
 
                     //return data
 
@@ -324,7 +323,7 @@ public class CourseRepositoryImplIntegrationTest {
                     .studentIds(Set.of(1L, 100L))
                     .build();
 
-            Assertions.assertThrows(DataConsistencyException.class, () -> courseRepository.updateCourse(course));
+            Assertions.assertThrows(DataConsistencyException.class, () -> courseRepository.update(course));
 
             try (var connection = testDataSource.getConnection();
                  var statement = connection.createStatement()) {
@@ -354,7 +353,7 @@ public class CourseRepositoryImplIntegrationTest {
                     .studentIds(Set.of())
                     .build();
 
-            Assertions.assertThrows(DaoException.class, () -> courseRepository.updateCourse(course));
+            Assertions.assertThrows(DaoException.class, () -> courseRepository.update(course));
 
             Mockito.reset(spyDataSource);
         }
@@ -379,7 +378,7 @@ public class CourseRepositoryImplIntegrationTest {
                 assertThat(resultSet.next(), is(true));
                 assertThat(resultSet.getString("name"), is("Course name"));
 
-                courseRepository.deleteCourseById(1L);
+                courseRepository.deleteById(1L);
 
                 resultSet = s.executeQuery("select * from course where course_id = 1");
                 assertThat(resultSet.next(), is(false));
@@ -390,7 +389,7 @@ public class CourseRepositoryImplIntegrationTest {
         void should_throw_DaoException_on_unexpected_behavior() throws SQLException {
             Mockito.when(spyDataSource.getConnection()).thenThrow(new SQLException("test exception"));
 
-            Assertions.assertThrows(DaoException.class, () -> courseRepository.deleteCourseById(1));
+            Assertions.assertThrows(DaoException.class, () -> courseRepository.deleteById(1));
 
             Mockito.reset(spyDataSource);
         }

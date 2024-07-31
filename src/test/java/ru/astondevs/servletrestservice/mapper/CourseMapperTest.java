@@ -10,7 +10,7 @@ import ru.astondevs.servletrestservice.dto.course.CourseDto;
 import ru.astondevs.servletrestservice.dto.course.CourseWithStudentsDto;
 import ru.astondevs.servletrestservice.dto.course.NewCourseForm;
 import ru.astondevs.servletrestservice.dto.course.UpdateCourseForm;
-import ru.astondevs.servletrestservice.model.Student;
+import ru.astondevs.servletrestservice.model.student.Student;
 import ru.astondevs.servletrestservice.model.course.Course;
 import ru.astondevs.servletrestservice.model.course.CourseWithStudents;
 
@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static ru.astondevs.servletrestservice.util.HasRecordComponentWithValue.hasRecordComponent;
+import static ru.astondevs.servletrestservice.util.HasRecordComponentWithValue.hasRecordProperty;
 
 class CourseMapperTest {
     static CourseMapper courseMapper;
@@ -94,9 +94,9 @@ class CourseMapperTest {
 
             assertThat(result.students(), hasSize(students.size()));
             assertThat(result.students(), containsInAnyOrder(students.stream().map(s -> allOf(
-                            hasRecordComponent("id", is(s.getId())),
-                            hasRecordComponent("name", is(s.getName())),
-                            hasRecordComponent("coordinatorId", is(s.getCoordinatorId()))))
+                            hasRecordProperty("id", is(s.getId())),
+                            hasRecordProperty("name", is(s.getName())),
+                            hasRecordProperty("coordinatorId", is(s.getCoordinatorId()))))
                     .toList()));
         }
     }

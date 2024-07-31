@@ -70,7 +70,7 @@ public class HasRecordComponentWithValue<T> extends TypeSafeDiagnosingMatcher<T>
     }
 
     @Factory
-    public static <T> Matcher<T> hasRecordComponent(String componentName, Matcher<?> valueMatcher) {
-        return new HasRecordComponentWithValue<>(componentName, valueMatcher);
+    public static <T> Matcher<T> hasRecordProperty(String propertyName, Matcher<?> valueMatcher) {
+        return new HasRecordComponentWithValue<>(propertyName, valueMatcher);
     }
 }

@@ -21,10 +21,10 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
 
     @Override
-    public CourseDto createCourse(NewCourseForm form) {
+    public CourseDto create(NewCourseForm form) {
         try {
             Course course = courseMapper.toCourse(form);
-            course = courseRepository.insertCourse(course);
+            course = courseRepository.insert(course);
             return courseMapper.toCourseDto(course);
 
         } catch (DataConsistencyException ex) {
@@ -35,17 +35,17 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public CourseWithStudentsDto getCourse(long courseId) {
+    public CourseWithStudentsDto get(long courseId) {
         CourseWithStudents course = courseRepository.findCourseWithStudentsById(courseId)
                 .orElseThrow(() -> new ServiceException(404, "course not found", null));
         return courseMapper.toCourseWithStudentsDto(course);
     }
 
     @Override
-    public CourseDto updateCourse(UpdateCourseForm form) {
+    public CourseDto update(UpdateCourseForm form) {
         try {
             Course course = courseMapper.toCourse(form);
-            course = courseRepository.updateCourse(course);
+            course = courseRepository.update(course);
             return courseMapper.toCourseDto(course);
         } catch (DataConsistencyException ex) {
             if (log.isDebugEnabled())
@@ -55,7 +55,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public void deleteCourse(long courseId) {
-        courseRepository.deleteCourseById(courseId);
+    public void delete(long courseId) {
+        courseRepository.deleteById(courseId);
     }
 }

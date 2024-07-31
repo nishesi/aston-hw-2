@@ -1,10 +1,9 @@
-package ru.astondevs.servletrestservice.model;
+package ru.astondevs.servletrestservice.model.coordinator;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.astondevs.servletrestservice.model.course.Course;
 
 import java.util.Set;
 
@@ -12,9 +11,8 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Student {
+public class Coordinator {
     private Long id;
     private String name;
-    private Long coordinatorId;
-    private Set<Course> courses;
+    private Set<Long> studentIds;
 }

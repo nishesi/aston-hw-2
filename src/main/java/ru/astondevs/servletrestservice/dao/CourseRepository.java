@@ -19,7 +19,7 @@ public interface CourseRepository {
      * @throws DaoException             if problems with database connection occurred
      */
 
-    Course insertCourse(Course course) throws DataConsistencyException, DaoException;
+    Course insert(Course course) throws DataConsistencyException, DaoException;
 
     /**
      * Return course information by its id, with set of students enrolled to the course.
@@ -42,7 +42,7 @@ public interface CourseRepository {
      * @throws DaoException             if problems with database connection occurred
      */
 
-    Course updateCourse(Course course) throws DataConsistencyException, DaoException;
+    Course update(Course course) throws DataConsistencyException, DaoException;
 
     /**
      * Remove course and all related data by course id.
@@ -51,5 +51,5 @@ public interface CourseRepository {
      * @throws DaoException if problems with database connection occurred
      */
 
-    void deleteCourseById(long courseId) throws DaoException;
+    void deleteById(long courseId) throws DaoException;
 }
