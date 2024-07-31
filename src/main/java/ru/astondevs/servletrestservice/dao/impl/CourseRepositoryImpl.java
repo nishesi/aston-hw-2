@@ -25,12 +25,7 @@ public class CourseRepositoryImpl implements CourseRepository {
     @Override
     public Course insertCourse(Course course) {
         try (var connection = dataSource.getConnection();
-             TransactionCloseable ignored = () -> {
-                 if (!connection.getAutoCommit()) {
-                     connection.rollback();
-                     connection.setAutoCommit(true);
-                 }
-             }) {
+             var ignored = new TransactionCloseable(connection)) {
 
             connection.setAutoCommit(false);
 
@@ -108,6 +103,7 @@ public class CourseRepositoryImpl implements CourseRepository {
                 }
                 builder.students(students);
             }
+            connection.setReadOnly(false);
             return Optional.of(builder.build());
 
         } catch (SQLException e) {
@@ -120,12 +116,8 @@ public class CourseRepositoryImpl implements CourseRepository {
     public Course updateCourse(Course course) {
         Set<Long> updateStudentIds = course.getStudentIds();
         try (var connection = dataSource.getConnection();
-             TransactionCloseable ignored = () -> {
-                 if (!connection.getAutoCommit()) {
-                     connection.rollback();
-                     connection.setAutoCommit(true);
-                 }
-             }) {
+             var ignored = new TransactionCloseable(connection)) {
+
             connection.setAutoCommit(false);
 
             Set<Long> existingStudentIds = new HashSet<>();

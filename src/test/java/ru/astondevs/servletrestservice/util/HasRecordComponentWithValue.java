@@ -25,15 +25,12 @@ public class HasRecordComponentWithValue<T> extends TypeSafeDiagnosingMatcher<T>
     }
 
     private Condition.Step<Method, Object> withPropertyValue(final T bean) {
-        return new Condition.Step<Method, Object>() {
-            @Override
-            public Condition<Object> apply(Method readMethod, Description mismatch) {
-                try {
-                    return Condition.matched(readMethod.invoke(bean, PropertyUtil.NO_ARGUMENTS), mismatch);
-                } catch (Exception e) {
-                    mismatch.appendText(e.getMessage());
-                    return Condition.notMatched();
-                }
+        return (readMethod, mismatch) -> {
+            try {
+                return Condition.matched(readMethod.invoke(bean, PropertyUtil.NO_ARGUMENTS), mismatch);
+            } catch (Exception e) {
+                mismatch.appendText(e.getMessage());
+                return Condition.notMatched();
             }
         };
     }
@@ -62,21 +59,18 @@ public class HasRecordComponentWithValue<T> extends TypeSafeDiagnosingMatcher<T>
     }
 
     private static Condition.Step<RecordComponent, Method> withReadMethod() {
-        return new Condition.Step<RecordComponent, Method>() {
-            @Override
-            public Condition<Method> apply(RecordComponent property, Description mismatch) {
-                final Method readMethod = property.getAccessor();
-                if (null == readMethod) {
-                    mismatch.appendText("record component \"" + property.getName() + "\" is not readable");
-                    return Condition.notMatched();
-                }
-                return Condition.matched(readMethod, mismatch);
+        return (property, mismatch) -> {
+            final Method readMethod = property.getAccessor();
+            if (null == readMethod) {
+                mismatch.appendText("record component \"" + property.getName() + "\" is not readable");
+                return Condition.notMatched();
             }
+            return Condition.matched(readMethod, mismatch);
         };
     }
 
     @Factory
     public static <T> Matcher<T> hasRecordComponent(String componentName, Matcher<?> valueMatcher) {
-        return new HasRecordComponentWithValue<T>(componentName, valueMatcher);
+        return new HasRecordComponentWithValue<>(componentName, valueMatcher);
     }
 }
