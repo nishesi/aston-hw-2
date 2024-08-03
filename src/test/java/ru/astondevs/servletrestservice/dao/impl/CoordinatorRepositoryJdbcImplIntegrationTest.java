@@ -44,9 +44,10 @@ public class CoordinatorRepositoryJdbcImplIntegrationTest {
             .withUsername("postgres")
             .withPassword("postgres")
             .withInitScript("./init.sql")
-            .withCreateContainerCmdModifier(cmd -> cmd.withHostConfig(
-                    new HostConfig().withPortBindings(new PortBinding(Ports.Binding.bindPort(5433), new ExposedPort(5432)))
-            ));
+//            .withCreateContainerCmdModifier(cmd -> cmd.withHostConfig(
+//                    new HostConfig().withPortBindings(new PortBinding(Ports.Binding.bindPort(5433), new ExposedPort(5432)))
+//            ))
+            ;
 
     @BeforeAll
     static void setUp() {

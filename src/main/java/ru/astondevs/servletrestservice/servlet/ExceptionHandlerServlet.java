@@ -44,6 +44,7 @@ public class ExceptionHandlerServlet extends HttpServlet {
                 objectMapper.writeValue(resp.getOutputStream(), new ExceptionDto(400, ex.getMessage()));
             }
             case null, default -> {
+                log.error("Internal error", exception);
                 resp.setStatus(500);
                 objectMapper.writeValue(resp.getOutputStream(), new ExceptionDto(500, "Internal Server Error"));
             }

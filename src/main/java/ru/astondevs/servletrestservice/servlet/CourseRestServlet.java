@@ -30,7 +30,7 @@ public class CourseRestServlet extends BaseRestHttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (!req.getPathInfo().isEmpty()) {
+        if (req.getPathInfo() != null && !req.getPathInfo().isEmpty()) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
@@ -43,6 +43,10 @@ public class CourseRestServlet extends BaseRestHttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
+        if (pathInfo == null || pathInfo.equals("/")) {
+            resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
         if (pathInfo.lastIndexOf("/") > 0) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
@@ -54,24 +58,18 @@ public class CourseRestServlet extends BaseRestHttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String pathInfo = req.getPathInfo();
-        if (pathInfo.lastIndexOf("/") > 0) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
+        if (isCorrectRestPath(req, resp)) {
+            UpdateCourseForm form = objectMapper.readValue(req.getInputStream(), UpdateCourseForm.class);
+            CourseDto course = courseService.update(form);
+            objectMapper.writeValue(resp.getOutputStream(), course);
         }
-        UpdateCourseForm form = objectMapper.readValue(req.getInputStream(), UpdateCourseForm.class);
-        CourseDto course = courseService.update(form);
-        objectMapper.writeValue(resp.getOutputStream(), course);
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String pathInfo = req.getPathInfo();
-        if (pathInfo.lastIndexOf("/") > 0) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
+        if (isCorrectRestPath(req, resp)) {
+            long courseId = Long.parseLong(req.getPathInfo().substring(1));
+            courseService.delete(courseId);
         }
-        long courseId = Long.parseLong(pathInfo.substring(1));
-        courseService.delete(courseId);
     }
 }

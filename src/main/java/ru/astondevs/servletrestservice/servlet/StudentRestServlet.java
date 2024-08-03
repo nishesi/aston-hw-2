@@ -30,7 +30,7 @@ public class StudentRestServlet extends BaseRestHttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (!req.getPathInfo().isEmpty()) {
+        if (req.getPathInfo() != null && !req.getPathInfo().isEmpty()) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
@@ -42,36 +42,27 @@ public class StudentRestServlet extends BaseRestHttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String pathInfo = req.getPathInfo();
-        if (pathInfo.lastIndexOf("/") > 0) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
+        if (isCorrectRestPath(req, resp)) {
+            long studentId = Long.parseLong(req.getPathInfo().substring(1));
+            StudentWithCoordinatorAndCoursesDto student = studentService.get(studentId);
+            objectMapper.writeValue(resp.getOutputStream(), student);
         }
-        long studentId = Long.parseLong(pathInfo.substring(1));
-        StudentWithCoordinatorAndCoursesDto student = studentService.get(studentId);
-        objectMapper.writeValue(resp.getOutputStream(), student);
     }
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String pathInfo = req.getPathInfo();
-        if (pathInfo.lastIndexOf("/") > 0) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
+        if (isCorrectRestPath(req, resp)) {
+            var form = objectMapper.readValue(req.getInputStream(), UpdateStudentForm.class);
+            StudentDto student = studentService.update(form);
+            objectMapper.writeValue(resp.getOutputStream(), student);
         }
-        var form = objectMapper.readValue(req.getInputStream(), UpdateStudentForm.class);
-        StudentDto student = studentService.update(form);
-        objectMapper.writeValue(resp.getOutputStream(), student);
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String pathInfo = req.getPathInfo();
-        if (pathInfo.lastIndexOf("/") > 0) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
+        if (isCorrectRestPath(req, resp)) {
+            long studentId = Long.parseLong(req.getPathInfo().substring(1));
+            studentService.delete(studentId);
         }
-        long studentId = Long.parseLong(pathInfo.substring(1));
-        studentService.delete(studentId);
     }
 }

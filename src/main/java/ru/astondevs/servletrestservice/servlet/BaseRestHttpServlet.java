@@ -23,4 +23,17 @@ public class BaseRestHttpServlet extends HttpServlet {
             throw new ServletException(ex);
         }
     }
+
+    protected boolean isCorrectRestPath(HttpServletRequest req, HttpServletResponse resp) {
+        String pathInfo = req.getPathInfo();
+        if (pathInfo == null || pathInfo.isEmpty() || pathInfo.equals("/")) {
+            resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return false;
+        }
+        if (pathInfo.lastIndexOf("/") > 0) {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return false;
+        }
+        return true;
+    }
 }
