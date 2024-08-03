@@ -50,7 +50,7 @@ public class StudentServiceImpl implements StudentService {
             return studentMapper.toStudentDto(student);
         } catch (DataConsistencyException ex) {
             if (log.isDebugEnabled())
-                log.debug("course creation failed", ex);
+                log.debug("student update failed", ex);
             throw new ServiceException(400, ex.getMessage(), ex);
         }
     }

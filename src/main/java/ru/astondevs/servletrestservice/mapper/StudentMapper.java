@@ -1,20 +1,22 @@
 package ru.astondevs.servletrestservice.mapper;
 
-import ru.astondevs.servletrestservice.dto.coordinator.CoordinatorDto;
-import ru.astondevs.servletrestservice.dto.course.CourseDto;
+import lombok.Setter;
 import ru.astondevs.servletrestservice.dto.student.NewStudentForm;
 import ru.astondevs.servletrestservice.dto.student.StudentDto;
 import ru.astondevs.servletrestservice.dto.student.StudentWithCoordinatorAndCoursesDto;
 import ru.astondevs.servletrestservice.dto.student.UpdateStudentForm;
-import ru.astondevs.servletrestservice.model.coordinator.Coordinator;
-import ru.astondevs.servletrestservice.model.course.Course;
 import ru.astondevs.servletrestservice.model.student.Student;
 import ru.astondevs.servletrestservice.model.student.StudentWithCoordinatorAndCourses;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Setter
 public class StudentMapper {
+
+    private CoordinatorMapper coordinatorMapper;
+    private CourseMapper courseMapper;
+
     public Student toStudent(NewStudentForm form) {
         return Student.builder()
                 .name(form.name())
@@ -33,25 +35,11 @@ public class StudentMapper {
     }
 
     public StudentWithCoordinatorAndCoursesDto toStudentWithCoordinatorAndCoursesDto(StudentWithCoordinatorAndCourses student) {
-        Coordinator coordinator = student.coordinator();
-        CoordinatorDto coordinatorDto = CoordinatorDto.builder()
-                .id(coordinator.getId())
-                .name(coordinator.getName())
-                .build();
-
-        Set<Course> courses = student.courses();
-        Set<CourseDto> courseDtos = courses.stream()
-                .map(c -> CourseDto.builder()
-                        .id(c.getId())
-                        .name(c.getName())
-                        .build())
-                .collect(Collectors.toSet());
-
         return StudentWithCoordinatorAndCoursesDto.builder()
                 .id(student.id())
                 .name(student.name())
-                .coordinator(coordinatorDto)
-                .courses(courseDtos)
+                .coordinator(coordinatorMapper.toCoordinatorDto(student.coordinator()))
+                .courses(courseMapper.toCourseDto(student.courses()))
                 .build();
     }
 
@@ -62,5 +50,11 @@ public class StudentMapper {
                 .coordinatorId(form.coordinatorId())
                 .courseIds(form.courseIds())
                 .build();
+    }
+
+    public Set<StudentDto> toStudentDto(Set<Student> students) {
+        return students.stream()
+                .map(this::toStudentDto)
+                .collect(Collectors.toSet());
     }
 }

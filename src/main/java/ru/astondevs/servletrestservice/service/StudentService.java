@@ -22,14 +22,14 @@ public interface StudentService {
      * Returns information about the student related to this ID
      *
      * @param studentId id of student
-     * @return student data, related courseIds and coordinator data
+     * @return student data, related courses and coordinator data
      * @throws ServiceException if an event occurred that does not fit into the normal operation of the method
      */
 
     StudentWithCoordinatorAndCoursesDto get(long studentId) throws ServiceException;
 
     /**
-     * Update student data and related list of courseIds
+     * Update student data and related list of courses
      *
      * @param form new student data
      * @return dto with new data

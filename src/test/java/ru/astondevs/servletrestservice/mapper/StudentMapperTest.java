@@ -31,7 +31,14 @@ class StudentMapperTest {
 
     @BeforeAll
     static void setUp() {
+        CourseMapper courseMapper = new CourseMapper();
         studentMapper = new StudentMapper();
+        CoordinatorMapper coordinatorMapper = new CoordinatorMapper();
+
+        studentMapper.setCourseMapper(courseMapper);
+        studentMapper.setCoordinatorMapper(coordinatorMapper);
+        coordinatorMapper.setStudentMapper(studentMapper);
+        courseMapper.setStudentMapper(studentMapper);
     }
 
     @Nested

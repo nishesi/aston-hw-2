@@ -6,13 +6,13 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
-import ru.astondevs.servletrestservice.dto.course.CourseDto;
-import ru.astondevs.servletrestservice.dto.course.CourseWithStudentsDto;
-import ru.astondevs.servletrestservice.dto.course.NewCourseForm;
-import ru.astondevs.servletrestservice.dto.course.UpdateCourseForm;
+import ru.astondevs.servletrestservice.dto.coordinator.CoordinatorDto;
+import ru.astondevs.servletrestservice.dto.coordinator.CoordinatorWithStudentsDto;
+import ru.astondevs.servletrestservice.dto.coordinator.NewCoordinatorForm;
+import ru.astondevs.servletrestservice.dto.coordinator.UpdateCoordinatorForm;
+import ru.astondevs.servletrestservice.model.coordinator.Coordinator;
+import ru.astondevs.servletrestservice.model.coordinator.CoordinatorWithStudents;
 import ru.astondevs.servletrestservice.model.student.Student;
-import ru.astondevs.servletrestservice.model.course.Course;
-import ru.astondevs.servletrestservice.model.course.CourseWithStudents;
 
 import java.util.Random;
 import java.util.Set;
@@ -24,15 +24,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static ru.astondevs.servletrestservice.util.HasRecordComponentWithValue.hasRecordProperty;
 
-class CourseMapperTest {
-    static CourseMapper courseMapper;
+class CoordinatorMapperTest {
+    static CoordinatorMapper coordinatorMapper;
     Random random = new Random();
 
     @BeforeAll
     static void setUp() {
-        courseMapper = new CourseMapper();
+        CourseMapper courseMapper = new CourseMapper();
         StudentMapper studentMapper = new StudentMapper();
-        CoordinatorMapper coordinatorMapper = new CoordinatorMapper();
+        coordinatorMapper = new CoordinatorMapper();
 
         studentMapper.setCourseMapper(courseMapper);
         studentMapper.setCoordinatorMapper(coordinatorMapper);
@@ -41,25 +41,25 @@ class CourseMapperTest {
     }
 
     @Nested
-    class toCourse_from_NewCourseForm_method_test {
+    class toCoordinator_from_NewCoordinatorForm_method_test {
         @RepeatedTest(10)
         void should_transfer_all_data() {
             String name = UUID.randomUUID().toString();
             Set<Long> ids = Stream.generate(() -> random.nextLong(1_000_000))
                     .limit(random.nextInt(10))
                     .collect(Collectors.toSet());
-            NewCourseForm newCourseForm = new NewCourseForm(name, ids);
-            Course course = courseMapper.toCourse(newCourseForm);
+            NewCoordinatorForm form = new NewCoordinatorForm(name, ids);
+            Coordinator result = coordinatorMapper.toCoordinator(form);
 
-            assertThat(course, hasProperty("name", is(name)));
-            assertThat(course, hasProperty("studentIds", hasSize(ids.size())));
-            assertThat(course, hasProperty("studentIds",
+            assertThat(result, hasProperty("name", is(name)));
+            assertThat(result, hasProperty("studentIds", hasSize(ids.size())));
+            assertThat(result, hasProperty("studentIds",
                     containsInAnyOrder(ids.stream().map(Matchers::is).toArray(Matcher[]::new))));
         }
     }
 
     @Nested
-    class toCourseDto_from_Course_method_test {
+    class toCoordinatorDto_from_Coordinator_method_test {
         @RepeatedTest(10)
         void should_transfer_all_data() {
             Long id = random.nextLong(1_000_000);
@@ -67,49 +67,54 @@ class CourseMapperTest {
             Set<Long> ids = Stream.generate(() -> random.nextLong(1_000_000))
                     .limit(random.nextInt(10))
                     .collect(Collectors.toSet());
-            Course course = new Course(id, name, ids);
+            Coordinator coordinator = new Coordinator(id, name, ids);
 
-            CourseDto result = courseMapper.toCourseDto(course);
+            CoordinatorDto result = coordinatorMapper.toCoordinatorDto(coordinator);
 
-            assertThat(result.id(), is(id));
-            assertThat(result.name(), is(name));
+            assertThat(result, allOf(
+                    hasRecordProperty("id", is(id)),
+                    hasRecordProperty("name", is(name))
+            ));
 
-            assertThat(result.studentIds(), hasSize(ids.size()));
-            assertThat(result.studentIds(),
-                    containsInAnyOrder(ids.stream().map(Matchers::is).toArray(Matcher[]::new)));
+            assertThat(result.studentIds(), allOf(
+                    hasSize(ids.size()),
+                    containsInAnyOrder(ids.stream().map(Matchers::is).toArray(Matcher[]::new))
+            ));
         }
     }
 
     @Nested
-    class toCourseWithStudentsDto_from_CourseWithStudents_method_test {
+    class toCoordinatorWithStudentsDto_from_toCoordinatorWithStudents_method_test {
         @RepeatedTest(10)
         void should_transfer_all_data() {
             Long id = random.nextLong(1_000_000);
             String name = UUID.randomUUID().toString();
-
             Set<Student> students = Stream.generate(() -> Student.builder()
                             .id(random.nextLong(1_000_000))
-                            .coordinatorId(random.nextLong(1_000_000))
                             .name(UUID.randomUUID().toString()).build())
                     .limit(10)
                     .collect(Collectors.toSet());
 
-            CourseWithStudentsDto result = courseMapper.toCourseWithStudentsDto(new CourseWithStudents(id, name, students));
+            CoordinatorWithStudentsDto result = coordinatorMapper
+                    .toCoordinatorWithStudentsDto(new CoordinatorWithStudents(id, name, students));
 
-            assertThat(result.id(), is(id));
-            assertThat(result.name(), is(name));
+
+            assertThat(result, allOf(
+                    hasRecordProperty("id", is(id)),
+                    hasRecordProperty("name", is(name))
+            ));
 
             assertThat(result.students(), hasSize(students.size()));
             assertThat(result.students(), containsInAnyOrder(students.stream().map(s -> allOf(
                             hasRecordProperty("id", is(s.getId())),
-                            hasRecordProperty("name", is(s.getName())),
-                            hasRecordProperty("coordinatorId", is(s.getCoordinatorId()))))
-                    .toList()));
+                            hasRecordProperty("name", is(s.getName()))))
+                    .toList()
+            ));
         }
     }
 
     @Nested
-    class toCourse_from_UpdateCourseForm_method_test {
+    class toCoordinator_from_UpdateCoordinatorForm_method_test {
         @RepeatedTest(10)
         void should_transfer_all_data() {
             Long id = random.nextLong(1_000_000);
@@ -117,14 +122,16 @@ class CourseMapperTest {
             Set<Long> ids = Stream.generate(() -> random.nextLong(1_000_000))
                     .limit(random.nextInt(10))
                     .collect(Collectors.toSet());
-            UpdateCourseForm form = new UpdateCourseForm(id, name, ids);
-            Course course = courseMapper.toCourse(form);
+            UpdateCoordinatorForm form = new UpdateCoordinatorForm(id, name, ids);
+            Coordinator result = coordinatorMapper.toCoordinator(form);
 
-            assertThat(course, hasProperty("id", is(id)));
-            assertThat(course, hasProperty("name", is(name)));
-            assertThat(course, hasProperty("studentIds", hasSize(ids.size())));
-            assertThat(course, hasProperty("studentIds",
-                    containsInAnyOrder(ids.stream().map(Matchers::is).toArray(Matcher[]::new))));
+            assertThat(result, allOf(
+                    hasProperty("id", is(id)),
+                    hasProperty("name", is(name)),
+                    hasProperty("studentIds", hasSize(ids.size())),
+                    hasProperty("studentIds",
+                            containsInAnyOrder(ids.stream().map(Matchers::is).toArray(Matcher[]::new)))
+            ));
         }
     }
 }

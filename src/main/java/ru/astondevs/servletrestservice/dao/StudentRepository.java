@@ -32,12 +32,12 @@ public interface StudentRepository {
     Optional<StudentWithCoordinatorAndCourses> findStudentWithCoordinatorAndCoursesById(long studentId) throws DaoException;
 
     /**
-     * Update student information, remove relations between student and courseIds that exist in database,
+     * Update student information, remove relations between student and courses that exist in database,
      * and not existing in this set, add relations that existing in this set, but not existing in database.
      *
      * @param student student that should be updated
      * @return the same student
-     * @throws DataConsistencyException if non-existed ids of courseIds passed
+     * @throws DataConsistencyException if non-existed ids of courses passed
      * @throws DaoException             if problems with database connection occurred
      */
 

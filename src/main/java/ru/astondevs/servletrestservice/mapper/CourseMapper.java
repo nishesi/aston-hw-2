@@ -1,5 +1,6 @@
 package ru.astondevs.servletrestservice.mapper;
 
+import lombok.Setter;
 import ru.astondevs.servletrestservice.dto.course.CourseDto;
 import ru.astondevs.servletrestservice.dto.course.CourseWithStudentsDto;
 import ru.astondevs.servletrestservice.dto.course.NewCourseForm;
@@ -7,9 +8,14 @@ import ru.astondevs.servletrestservice.dto.course.UpdateCourseForm;
 import ru.astondevs.servletrestservice.model.course.Course;
 import ru.astondevs.servletrestservice.model.course.CourseWithStudents;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
+@Setter
 public class CourseMapper {
+
+    private StudentMapper studentMapper;
+
     public Course toCourse(NewCourseForm form) {
         return Course.builder()
                 .name(form.name())
@@ -26,14 +32,10 @@ public class CourseMapper {
     }
 
     public CourseWithStudentsDto toCourseWithStudentsDto(CourseWithStudents course) {
-        var students = course.getStudents().stream()
-                .map(s -> new CourseWithStudentsDto.StudentDto(s.getId(), s.getName(), s.getCoordinatorId()))
-                .collect(Collectors.toSet());
-
         return CourseWithStudentsDto.builder()
                 .id(course.getId())
                 .name(course.getName())
-                .students(students)
+                .students(studentMapper.toStudentDto(course.getStudents()))
                 .build();
     }
 
@@ -43,5 +45,11 @@ public class CourseMapper {
                 .name(form.name())
                 .studentIds(form.studentIds())
                 .build();
+    }
+
+    public Set<CourseDto> toCourseDto(Set<Course> courses) {
+        return courses.stream()
+                .map(this::toCourseDto)
+                .collect(Collectors.toSet());
     }
 }
