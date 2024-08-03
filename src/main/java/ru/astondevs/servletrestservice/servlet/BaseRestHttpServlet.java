@@ -15,7 +15,7 @@ public class BaseRestHttpServlet extends HttpServlet {
             resp.setContentType("application/json");
             super.service(req, resp);
 
-        } catch (DatabindException | IllegalArgumentException ex) {
+        } catch (DatabindException ex) {
             throw new ServletException(ex);
         } catch (IOException ex) {
             throw ex;

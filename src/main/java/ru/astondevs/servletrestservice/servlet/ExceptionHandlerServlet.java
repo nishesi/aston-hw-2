@@ -17,7 +17,7 @@ import static jakarta.servlet.RequestDispatcher.ERROR_EXCEPTION;
 
 @Slf4j
 @WebServlet("/exception")
-public class ExceptionHandler extends HttpServlet {
+public class ExceptionHandlerServlet extends HttpServlet {
     private ObjectMapper objectMapper;
 
     @Override
